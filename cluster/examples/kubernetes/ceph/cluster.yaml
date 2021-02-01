@@ -12,7 +12,7 @@ apiVersion: ceph.rook.io/v1
 kind: CephCluster
 metadata:
   name: rook-ceph
-  namespace: rook-ceph # namespace:cluster
+  namespace: rook-ceph
 spec:
   cephVersion:
     # The container image used to launch the Ceph daemon pods (mon, mgr, osd, mds, rgw).
@@ -75,8 +75,8 @@ spec:
     # deployed) to set rulesNamespace for all the clusters. Otherwise, you will get duplicate alerts with multiple alert definitions.
     rulesNamespace: rook-ceph
   network:
-    # enable host networking
-    #provider: host
+    # enable host networking (특정 네트워크 인터페이스를 cluster/storage network로 사용할 경우 설정. 네트워크 대역을 지정하는 config맵 설정하여 배포 필수)
+    #provider: host 
     # EXPERIMENTAL: enable the Multus network provider
     #provider: multus
     #selectors:
