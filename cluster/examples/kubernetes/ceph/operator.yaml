@@ -339,23 +339,23 @@ spec:
         # to the namespace in which the `mountSecret` Kubernetes secret namespace.
         # - name: AGENT_MOUNT_SECURITY_MODE
         #   value: "Any"
-        # Set the path where the Rook agent can find the flex volumes
+        # Rook Agent가 Flex Volume을 찾을 수 있는 경로 설정
         # - name: FLEXVOLUME_DIR_PATH
         #   value: "<PathToFlexVolumes>"
-        # Set the path where kernel modules can be found
+        # 커널 모듈을 찾을 수 있는 경로 설정
         # - name: LIB_MODULES_DIR_PATH
         #   value: "<PathToLibModules>"
-        # Mount any extra directories into the agent container
+        # Agent Contaioner에 추가 디렉터리를 마운트
         # - name: AGENT_MOUNTS
         #   value: "somemount=/host/path:/container/path,someothermount=/host/path2:/container/path2"
-        # Rook Discover toleration. Will tolerate all taints with all keys.
-        # Choose between NoSchedule, PreferNoSchedule and NoExecute:
+        # Rook Discover Toleration. 모든 key로 모든 Taints를 Toleration함
+        # 다음 세가지 중에 선택 :  NoSchedule, PreferNoSchedule and NoExecute:
         # - name: DISCOVER_TOLERATION
         #   value: "NoSchedule"
-        # (Optional) Rook Discover toleration key. Set this to the key of the taint you want to tolerate
+        # (선택 사항) Rook Discover toleration key. 
         # - name: DISCOVER_TOLERATION_KEY
         #   value: "<KeyOfTheTaintToTolerate>"
-        # (Optional) Rook Discover tolerations list. Put here list of taints you want to tolerate in YAML format.
+        # (선택 사항) Rook Discover tolerations list. 
         # - name: DISCOVER_TOLERATIONS
         #   value: |
         #     - effect: NoSchedule
@@ -364,108 +364,107 @@ spec:
         #     - effect: NoExecute
         #       key: node-role.kubernetes.io/etcd
         #       operator: Exists
-        # (Optional) Rook Discover priority class name to set on the pod(s)
+        # (선택 사항) Rook Discover priority class name to set on the pod(s)
         # - name: DISCOVER_PRIORITY_CLASS_NAME
         #   value: "<PriorityClassName>"
-        # (Optional) Discover Agent NodeAffinity.
+        # (선택 사항) Discover Agent NodeAffinity.
         # - name: DISCOVER_AGENT_NODE_AFFINITY
         #   value: "role=storage-node; storage=rook, ceph"
-        # (Optional) Discover Agent Pod Labels.
+        # (선택 사항) Discover Agent Pod Labels.
         # - name: DISCOVER_AGENT_POD_LABELS
         #   value: "key1=value1,key2=value2"
-        # Allow rook to create multiple file systems. Note: This is considered
+        # Rook이 여러 Filesystem을 생성하도록 허용. Note: This is considered
         # an experimental feature in Ceph as described at
         # http://docs.ceph.com/docs/master/cephfs/experimental-features/#multiple-filesystems-within-a-ceph-cluster
         # which might cause mons to crash as seen in https://github.com/rook/rook/issues/1027
         - name: ROOK_ALLOW_MULTIPLE_FILESYSTEMS
           value: "false"
 
-        # The logging level for the operator: INFO | DEBUG
+        # operator에 대한 로깅 레벨: INFO | DEBUG
         - name: ROOK_LOG_LEVEL
           value: "INFO"
 
-        # The duration between discovering devices in the rook-discover daemonset.
+        # rook-discover DemonSet에서 장치 검색 사이 기간 (디스커버리 주기)
         - name: ROOK_DISCOVER_DEVICES_INTERVAL
           value: "60m"
 
-        # Whether to start pods as privileged that mount a host path, which includes the Ceph mon and osd pods.
-        # Set this to true if SELinux is enabled (e.g. OpenShift) to workaround the anyuid issues.
-        # For more details see https://github.com/rook/rook/issues/1314#issuecomment-355799641
+        # Ceph mon 및 osd Pod를 포함하는 Host 경로를 Mount하는 권한이있는 Pod를 시작할지 여부.
+        # SELinux가 활성화된 경우 true로 설정하여 anyuid 문제를 해결
+        # 자세한내용은 참조 => https://github.com/rook/rook/issues/1314#issuecomment-355799641
         - name: ROOK_HOSTPATH_REQUIRES_PRIVILEGED
           value: "false"
 
-        # In some situations SELinux relabelling breaks (times out) on large filesystems, and doesn't work with cephfs ReadWriteMany volumes (last relabel wins).
-        # Disable it here if you have similar issues.
+        # 어떤 상황에서는 SELinux Label 재저지정이 큰 파일시스템에서 중단(시간초과)되고 cephfs ReadWriteMany 볼륨에서 작동하지 않음.
+        # 유사한 문제가 있는 경우 여기에서 비활성하시오.
         # For more details see https://github.com/rook/rook/issues/2417
         - name: ROOK_ENABLE_SELINUX_RELABELING
           value: "true"
 
-        # In large volumes it will take some time to chown all the files. Disable it here if you have performance issues.
-        # For more details see https://github.com/rook/rook/issues/2254
+        # 큰 볼륨의 경우 모든 파일을 chown하는데 시간이 걸림. 성능문제가 있는 경우 여기에서 비활성화 하시오.
+        # 자세한내용은 >>  https://github.com/rook/rook/issues/2254
         - name: ROOK_ENABLE_FSGROUP
           value: "true"
 
-        # Disable automatic orchestration when new devices are discovered
+        # 새 장치가 검색되었을 때, 자동 오케스트레이션 비활성화.
         - name: ROOK_DISABLE_DEVICE_HOTPLUG
           value: "false"
 
         # Provide customised regex as the values using comma. For eg. regex for rbd based volume, value will be like "(?i)rbd[0-9]+".
-        # In case of more than one regex, use comma to separate between them.
-        # Default regex will be "(?i)dm-[0-9]+,(?i)rbd[0-9]+,(?i)nbd[0-9]+"
-        # Add regex expression after putting a comma to blacklist a disk
-        # If value is empty, the default regex will be used.
+        # 쉼표를 사용하여 사용자 정의된 정규식을 값으로 제공. (ex) rbd 기반 볼륨의 정규식 값은 "(?i)rbd[0-9]+"와 같음.
+        # 정규식이 두 개 이상인 경우, 쉼표를 사용해서 구분
+        # 기본 정규식은 "(?i)dm-[0-9]+,(?i)rbd[0-9]+,(?i)nbd[0-9]+"
+        # 디스크 블랙리스트에 쉼표를 넣은 후 정규식 추가
+        # 값이 비어있으면 기본 정규식이 사용됩니다.
         - name: DISCOVER_DAEMON_UDEV_BLACKLIST
           value: "(?i)dm-[0-9]+,(?i)rbd[0-9]+,(?i)nbd[0-9]+"
 
-        # Whether to enable the flex driver. By default it is enabled and is fully supported, but will be deprecated in some future release
-        # in favor of the CSI driver.
+        # Flex driver 활성화 여부. 기본적으로 활성화되고 완전히 지원되지만, 향후 일부 릴리즈에서는 더 이상 사용되지 않음
+        # CSI드라이버를 선호함
         - name: ROOK_ENABLE_FLEX_DRIVER
           value: "false"
 
-        # Whether to start the discovery daemon to watch for raw storage devices on nodes in the cluster.
-        # This daemon does not need to run if you are only going to create your OSDs based on StorageClassDeviceSets with PVCs.
+        # 클러스터 노드에서 원시 저장장치(raw storage devices)를 감시하기 위해 검색 데몬을 시작할지 여부
+        # 이 데몬은 PVC가 있는 StorageClassDeviceSets를 기반으로 OSD를 생성하는 경우에만 실행할 필요가 없습니다.
         - name: ROOK_ENABLE_DISCOVERY_DAEMON
           value: "false"
 
-        # Time to wait until the node controller will move Rook pods to other
-        # nodes after detecting an unreachable node.
-        # Pods affected by this setting are:
+        # Unreachable 상태의 노드를 감지한 후, 노드 컨트롤러가 Rook Pod를 다른 노드로 이동할 때까지 대기하는 시간 설정
+        # 이 설정의 영향을 받는 포드는 아래와 같음:
         # mgr, rbd, mds, rgw, nfs, PVC based mons and osds, and ceph toolbox
-        # The value used in this variable replaces the default value of 300 secs
-        # added automatically by k8s as Toleration for
-        # <node.kubernetes.io/unreachable>
-        # The total amount of time to reschedule Rook pods in healthy nodes
-        # before detecting a <not ready node> condition will be the sum of:
+        # (MRR, RBD, MDS, RGW, NFS, PVC기반 MONs 및 OSDs 그리고 ceph 툴박스)
+        # 기본 값은 300초 (5분)
+        # k8s에 의해 <node.kubernetes.io/unreachable>에 대한 자동 Toleration이 추가됨
+        # <not ready node> 조건을 감지하기 전에 정상인 노드에서 Rook Pod를 다시 스케줄링하는 총 시간은 다음의 합계:
         #  --> node-monitor-grace-period: 40 seconds (k8s kube-controller-manager flag)
         #  --> ROOK_UNREACHABLE_NODE_TOLERATION_SECONDS: 5 seconds
         - name: ROOK_UNREACHABLE_NODE_TOLERATION_SECONDS
           value: "5"
 
-        # The name of the node to pass with the downward API
+        # downward API로 전달할 노드의 이름
         - name: NODE_NAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        # The pod name to pass with the downward API
+        # downward API로 전달한 파드의 이름
         - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        # The pod namespace to pass with the downward API
+        # downward API로 전달한 Pod NameSpace
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
 
-        #  Uncomment it to run lib bucket provisioner in multithreaded mode
+        #  다중 Thread모드에서 lib 버킷 프로비저너를 실행하려면 주석처리를 제거할 것.
         #- name: LIB_BUCKET_PROVISIONER_THREADS
         #  value: "5"
 
-      # Uncomment it to run rook operator on the host network
+      # 호스트 네트워크에서 Rook Operator를 실행하려면 주석처리를 제거할 것.
       #hostNetwork: true
       volumes:
       - name: rook-config
         emptyDir: {}
       - name: default-config-dir
         emptyDir: {}
-# OLM: END OPERATOR DEPLOYMENT
+# OLM: Operator 배포 끝
