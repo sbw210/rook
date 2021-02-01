@@ -1,69 +1,56 @@
 #################################################################################################################
-# The deployment for the rook operator
-# Contains the common settings for most Kubernetes deployments.
-# For example, to create the rook-ceph cluster:
-#   kubectl create -f crds.yaml -f common.yaml -f operator.yaml
-#   kubectl create -f cluster.yaml
-#
-# Also see other operator sample files for variations of operator.yaml:
-# - operator-openshift.yaml: Common settings for running in OpenShift
+# 대부분의 Kubernets 배포에 대한 공통 설정을 포함
 ###############################################################################################################
 
-# Rook Ceph Operator Config ConfigMap
-# Use this ConfigMap to override Rook-Ceph Operator configurations.
-# NOTE! Precedence will be given to this config if the same Env Var config also exists in the
-#       Operator Deployment.
-# To move a configuration(s) from the Operator Deployment to this ConfigMap, add the config
-# here. It is recommended to then remove it from the Deployment to eliminate any future confusion.
+# Rook-Ceph Operator 구성 ConfigMap
+# 아래 ConfigMap을 사용하여 Rook-Ceph Operator 구성을 재정의
 kind: ConfigMap
 apiVersion: v1
 metadata:
   name: rook-ceph-operator-config
-  # should be in the namespace of the operator
-  namespace: rook-ceph # namespace:operator
+  # 이 ConfigMap은 operator의 네임스페이스에 있어야함!
+  namespace: rook-ceph 
 data:
-  # Enable the CSI driver.
-  # To run the non-default version of the CSI driver, see the override-able image properties in operator.yaml
+  # CSI driver 적용(enable)
+  # Default가 아닌 버전의 CSI(Container Storage Interface) driver를 실행하려면, operator.yaml에서 재정의 가능한 이미지 속성을 참조.
   ROOK_CSI_ENABLE_CEPHFS: "true"
-  # Enable the default version of the CSI RBD driver. To start another version of the CSI driver, see image properties below.
   ROOK_CSI_ENABLE_RBD: "true"
   ROOK_CSI_ENABLE_GRPC_METRICS: "true"
 
-  # Set logging level for csi containers.
-  # Supported values from 0 to 5. 0 for general useful logs, 5 for trace level verbosity.
+  # CSI 컨테이너에 대한 로깅 레벨을 설정
+  # 0-5까지 지원. 일반적으로 useful한 로그는 0, 자세한 로그는 5 (사용하려면 아래 주석해제)
   # CSI_LOG_LEVEL: "0"
 
-  # OMAP generator will generate the omap mapping between the PV name and the RBD image.
-  # CSI_ENABLE_OMAP_GENERATOR need to be enabled when we are using rbd mirroring feature.
-  # By default OMAP generator sidecar is deployed with CSI provisioner pod, to disable
-  # it set it to false.
+  # OMAP GENERATOR는 PV이름과 RBD 이미지 사이에 omap 매핑을 생성.
+  # RBD 미러링 기능을 사용하려면 CSI_ENABLE_OMAP_GENERATOR를 활성화해야함
+  # 기본적으로 OMAP생성기 사이드카는 CSI 프로비저닝 도구 Pod와 함께 배포되어 false로 설정함.
   # CSI_ENABLE_OMAP_GENERATOR: "false"
 
-  # set to false to disable deployment of snapshotter container in CephFS provisioner pod.
+  # CephFS 프로비저너 POD에서 snapshotter 컨테이너의 배포를 비활성화하려면 false로 설정할것.
   CSI_ENABLE_CEPHFS_SNAPSHOTTER: "true"
 
-  # set to false to disable deployment of snapshotter container in RBD provisioner pod.
+  # RBD 프로비저너 POD에서 snapshotter 컨테이너의 배포를 비활성화하려면 false로 설정할것.
   CSI_ENABLE_RBD_SNAPSHOTTER: "true"
 
-  # Enable cephfs kernel driver instead of ceph-fuse.
-  # If you disable the kernel client, your application may be disrupted during upgrade.
-  # See the upgrade guide: https://rook.io/docs/rook/master/ceph-upgrade.html
-  # NOTE! cephfs quota is not supported in kernel version < 4.17
+  # ceph-fuse 대신 cephfs 커널 드라이버를 활성화함
+  # kernel client를 비활성화하면 업그레이드 도중에 APP이 중단될 수 있음
+  # 업그레이드 참조 가이드: https://rook.io/docs/rook/master/ceph-upgrade.html
+  # NOTE! cephfs quota는 커널 버전 4.17 미만에서는 지원되지 않습니다.
   CSI_FORCE_CEPHFS_KERNEL_CLIENT: "true"
 
-  # (Optional) policy for modifying a volume's ownership or permissions when the RBD PVC is being mounted.
-  # supported values are documented at https://kubernetes-csi.github.io/docs/support-fsgroup.html
+  # (선택사항) RBD PVC가 mount될 때 volume의 소유권 또는 권한을 수정하기위한 정책
+  # 지원되는 값은 링크 참조 = https://kubernetes-csi.github.io/docs/support-fsgroup.html
   CSI_RBD_FSGROUPPOLICY: "ReadWriteOnceWithFSType"
 
-  # (Optional) policy for modifying a volume's ownership or permissions when the CephFS PVC is being mounted.
-  # supported values are documented at https://kubernetes-csi.github.io/docs/support-fsgroup.html
+  # (선택사항) CephFA PVC가 마운트될 때 volume의 소유권 또는 권한을 수정하기위한 정책 
+  # 지원되는 값은 링크 참조 = https://kubernetes-csi.github.io/docs/support-fsgroup.html
   CSI_CEPHFS_FSGROUPPOLICY: "ReadWriteOnceWithFSType"
 
-  # (Optional) Allow starting unsupported ceph-csi image
+  # (선택사항) 지원되지 않는 Ceph-csi 이미지 시작 허용여부
   ROOK_CSI_ALLOW_UNSUPPORTED_VERSION: "false"
-  # The default version of CSI supported by Rook will be started. To change the version
-  # of the CSI driver to something other than what is officially supported, change
-  # these images to the desired release of the CSI driver.
+  # Rook에서 지원하는 CSI의 기본버전이 시작됨.
+  # 버전을 변경하려면 공식적으로 지원되는 것과 다른 것으로 CSI 드라이버의 수를 변경할 것
+  # 이러한 이미지를 원하는 CSI 드라이버 릴리스에 추가합니다.
   # ROOK_CSI_CEPH_IMAGE: "quay.io/cephcsi/cephcsi:v3.2.0"
   # ROOK_CSI_REGISTRAR_IMAGE: "k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.1"
   # ROOK_CSI_RESIZER_IMAGE: "k8s.gcr.io/sig-storage/csi-resizer:v1.0.0"
