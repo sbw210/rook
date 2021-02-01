@@ -1,21 +1,15 @@
 ###################################################################################################################
-# Create the common resources that are necessary to start the operator and the ceph cluster.
-# These resources *must* be created before the operator.yaml and cluster.yaml or their variants.
-# The samples all assume that a single operator will manage a single cluster crd in the same "rook-ceph" namespace.
-#
-# If the operator needs to manage multiple clusters (in different namespaces), see the section below
-# for "cluster-specific resources". The resources below that section will need to be created for each namespace
-# where the operator needs to manage the cluster. The resources above that section do not be created again.
-#
-# Most of the sections are prefixed with a 'OLM' keyword which is used to build our CSV for an OLM (Operator Life Cycle manager)
+# Ceph클러스터 시작을 위한 공통 리소스 생성 Yaml
+# operator.yaml / cluster.yaml 보다 먼저 생성해야하는 Yaml 파일임! (1순위)
+# 하단 샘플은 operator가 동일한 'rook-ceph' 네임스페이스에 단일 클러스터 crd (custom resource data)를 관리한다고 가정함.
 ###################################################################################################################
 
-# Namespace where the operator and other rook resources are created
+# operator 및 기타 rook 리소스가 생성되는 네임스페이스
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: rook-ceph # namespace:cluster
-# OLM: BEGIN OBJECTBUCKET ROLEBINDING
+  name: rook-ceph # 네임스페이스 샘플 기본값은 rook-ceph
+# OLM: 롤바인딩 오브젝트 시작
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -28,15 +22,15 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: rook-ceph-system
-    namespace: rook-ceph # namespace:operator
-# OLM: END OBJECTBUCKET ROLEBINDING
-# OLM: BEGIN OPERATOR ROLE
+    namespace: rook-ceph 
+# OLM: 롤바인딩 오브젝트 끝
+# OLM: Operator 역할
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rook-ceph-admission-controller
-  namespace: rook-ceph # namespace:operator
+  namespace: rook-ceph 
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -44,7 +38,7 @@ metadata:
   name: rook-ceph-admission-controller-role
 rules:
   - apiGroups: ["ceph.rook.io"]
-    resources: ["*"]
+    resources: ["*"]    # ceph.rook.io의 모든 리소스들을 가져도고, 보고, 확인가능
     verbs: ["get", "watch", "list"]
 ---
 kind: ClusterRoleBinding
@@ -55,13 +49,13 @@ subjects:
   - kind: ServiceAccount
     name: rook-ceph-admission-controller
     apiGroup: ""
-    namespace: rook-ceph # namespace:operator
+    namespace: rook-ceph 
 roleRef:
   kind: ClusterRole
   name: rook-ceph-admission-controller-role
   apiGroup: rbac.authorization.k8s.io
 ---
-# The cluster role for managing all the cluster-specific resources in a namespace
+# 네임스페이스의 모든 클러스터 특정 리소스를 관리하기 위한 ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -91,12 +85,12 @@ rules:
   - update
   - delete
 ---
-# The role for the operator to manage resources in its own namespace
+# operator가 자신의 네임스페이스에서 리소스를 관리하는 Role
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: rook-ceph-system
-  namespace: rook-ceph # namespace:operator
+  namespace: rook-ceph 
   labels:
     operator: rook
     storage-backend: ceph
@@ -136,7 +130,7 @@ rules:
   verbs:
   - delete
 ---
-# The cluster role for managing the Rook CRDs
+# Rook의 Custom Resource Data들을 관리하기 위한 ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -148,9 +142,8 @@ rules:
 - apiGroups:
   - ""
   resources:
-  # Pod access is needed for fencing
   - pods
-  # Node access is needed for determining nodes where mons should run
+  # Mons가 실행되어야하는 노드를 결정하기 위해서 Node에 Access 필요
   - nodes
   - nodes/proxy
   - services
@@ -162,7 +155,7 @@ rules:
   - ""
   resources:
   - events
-    # PVs and PVCs are managed by the Rook provisioner
+    # PV와 PVC는 Rook 프로비저닝 도구에서 관리
   - persistentvolumes
   - persistentvolumeclaims
   - endpoints
@@ -256,7 +249,7 @@ rules:
   verbs:
   - get
 ---
-# Aspects of ceph-mgr that require cluster-wide access
+# 클러스터 전체 Access가 필요한 Ceph-mgr의 측면
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -315,23 +308,23 @@ rules:
   - "*"
   resources:
   - "*"
-# OLM: END OPERATOR ROLE
-# OLM: BEGIN SERVICE ACCOUNT SYSTEM
+# OLM: OperatorRole 끝
+# OLM: 서비스어카운트 시작
 ---
-# The rook system service account used by the operator, agent, and discovery pods
+# operator, agent 및 검색 Pod에서 사용하는 Rook 시스템 서비스어카운트
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rook-ceph-system
-  namespace: rook-ceph # namespace:operator
+  namespace: rook-ceph 
   labels:
     operator: rook
     storage-backend: ceph
 # imagePullSecrets:
 # - name: my-registry-secret
 
-# OLM: END SERVICE ACCOUNT SYSTEM
-# OLM: BEGIN OPERATOR ROLEBINDING
+# OLM: 서비스어카운트 끝
+# OLM: Operator RoleBinding 
 ---
 # Grant the operator, agent, and discovery agents access to resources in the namespace
 kind: RoleBinding
