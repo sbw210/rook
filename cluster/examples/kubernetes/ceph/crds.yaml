@@ -1,21 +1,29 @@
 ###################################################################################################################
-# Create the CRDs that are necessary before creating your Rook cluster.
-# These resources *must* be created before the cluster.yaml or their variants.
+# Rook 클러스터를 만들기 전에 필요한 CRD를 만듭니다 (CustomResourceDefinition)
+# 이 리소스는 cluster.yaml 보다 먼저 생성되어야합니다.
 ###################################################################################################################
-# OLM: BEGIN CEPH CRD
+# CEPH CRD 시작
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: cephclusters.ceph.rook.io
+  # 일반적으로 spec.names.plural 값과 spec.group 값을 조합한 값으로 설정한다.
+  name: cephclusters.ceph.rook.io    
 spec:
+  # REST API용 그룹 이름을 설정. /<apis>/<group>/<version> 형식.
   group: ceph.rook.io
   names:
+    # CRD를 만들 때, kind에 설정할 단수형 단어. 카멜케이스 형식으로 설정.
     kind: CephCluster
+    # API를 요청하는 도메인에서 사용할 복수형 이름. /<apis>/<group>/<version>/<plural> 형식.
     plural: cephclusters
+    # CLI에서 사용할 사용자 정의 자원의 단수형 이름.
     singular: cephcluster
+  # 네임스페이스나 클러스터 등의 사용자 정의 자원이 적용될 범위를 표시.(여기서는 NS)
   scope: Namespaced
   versions:
+      #CRD에서 지원하는 사용자 정의 자원의 버전 정보.
     - name: v1
+      # 해당 버전을 사용 가능한지 설정. 사용가능=true
       served: true
       storage: true
       schema:
@@ -404,8 +412,8 @@ spec:
           jsonPath: .status.ceph.health
       subresources:
         status: {}
-# OLM: END CEPH CRD
-# OLM: BEGIN CEPH CLIENT CRD
+# CEPH CRD 끝
+# CEPH CLIENT CRD 시작
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -438,8 +446,8 @@ spec:
               x-kubernetes-preserve-unknown-fields: true
       subresources:
         status: {}
-# OLM: END CEPH CLIENT CRD
-# OLM: BEGIN CEPH RBD MIRROR CRD
+# CEPH CLIENT CRD 끝
+# CEPH RBD MIRROR CRD 
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
